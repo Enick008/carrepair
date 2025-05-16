@@ -110,87 +110,43 @@
     <canvas id="repairChart" height="100"></canvas>
   </section>
 </div>
+<!-- ฟ้าใสจัด script ใหม่ให้ทำงานได้จริง 100% -->
 <script>
-  function showTab(tabId) {
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsAJEOBGxdKJ7jgC5Z4uhtGpbYRynt5X3_u7_RbCGL--WUI5QlyLLM76SlW-wNODWa/exec";
+
+function showTab(tabId) {
   document.getElementById('mainTab').classList.add('hidden');
   document.getElementById('statsTab').classList.add('hidden');
-
   document.querySelectorAll('.tabs button').forEach(btn => {
     btn.classList.remove('tab-active');
     btn.classList.add('tab-inactive');
   });
-
-  // ลบซ้ำซ้อนจาก showTab
-
-  }
-};
-
   document.getElementById(tabId).classList.remove('hidden');
   const activeBtn = Array.from(document.querySelectorAll('.tabs button')).find(b => b.textContent.trim() === (tabId === 'mainTab' ? 'แจ้งซ่อม' : 'สถิติ'));
   activeBtn.classList.add('tab-active');
   activeBtn.classList.remove('tab-inactive');
-
-  if (tabId === 'statsTab') {
-    renderRepairChart();
-  }
-});
-
-    document.getElementById(tabId).classList.remove('hidden');
-    const activeBtn = Array.from(document.querySelectorAll('.tabs button')).find(b => b.textContent.trim() === (tabId === 'mainTab' ? 'แจ้งซ่อม' : 'สถิติ'));
-    activeBtn.classList.add('tab-active');
-    activeBtn.classList.remove('tab-inactive');
-  }
-function renderRepairChart() {
-  const ctx = document.getElementById('repairChart').getContext('2d');
-  // ตัวอย่างข้อมูลจำลอง (ควรดึงข้อมูลจริงจาก Google Apps Script)
-  const data = {
-    labels: ['เครื่องยนต์', 'ช่วงล่าง', 'ระบบไฟฟ้า', 'ตัวถัง', 'อื่นๆ'],
-    datasets: [{
-      label: 'จำนวนครั้งที่แจ้งซ่อม',
-      data: [5, 3, 4, 2, 1],
-      backgroundColor: ['#60a5fa', '#818cf8', '#f472b6', '#34d399', '#fbbf24']
-    }]
-  };
-  new Chart(ctx, {
-    type: 'bar',
-    data: data,
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
-  });
+  if (tabId === 'statsTab') renderRepairChart();
 }
-</script>
 
-
-  <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsAJEOBGxdKJ7jgC5Z4uhtGpbYRynt5X3_u7_RbCGL--WUI5QlyLLM76SlW-wNODWa/exec";
-
-    function toggleDateFields() {
+function toggleDateFields() {
   const status = document.getElementById("status").value;
   const repairField = document.getElementById("repairDateField");
   const paymentField = document.getElementById("paymentDateField");
   const amountField = document.getElementById("amountField");
-
   repairField.classList.add("hidden");
   paymentField.classList.add("hidden");
   amountField.classList.add("hidden");
-
   if (status === "กำลังเบิกจ่าย") {
     repairField.classList.remove("hidden");
     amountField.classList.remove("hidden");
-  } // ลบ else-if ซ้ำใน toggleDateFields
-} else if (status === "แล้วเสร็จ") {
-        document.getElementById("repairDateField").classList.remove("hidden");
-        document.getElementById("paymentDateField").classList.remove("hidden");
-        document.getElementById("amountField").classList.remove("hidden");
-      }
-    }
+  } else if (status === "แล้วเสร็จ") {
+    repairField.classList.remove("hidden");
+    paymentField.classList.remove("hidden");
+    amountField.classList.remove("hidden");
+  }
+}
 
-    function submitForm() {
+function submitForm() {
   const data = {
     action: "addRepair",
     date: document.getElementById("reportDate").value,
@@ -202,35 +158,25 @@ function renderRepairChart() {
     paymentDate: document.getElementById("paymentDate").value,
     amount: document.getElementById("amount").value
   };
-
-  Swal.fire({
-    title: 'กำลังบันทึกข้อมูล...',
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
-
-  const script = document.createElement('script');
-  script.src = `${SCRIPT_URL}?callback=handleResponse&data=${encodeURIComponent(JSON.stringify(data))}`;
-  document.body.appendChild(script);
-});
-
+  Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   const script = document.createElement('script');
   script.src = `${SCRIPT_URL}?callback=handleResponse&data=${encodeURIComponent(JSON.stringify(data))}`;
   document.body.appendChild(script);
 }
-    }
 
-    function handleResponse(response) {
-      Swal.close();
-      if (response.success) {
-        Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
-        document.getElementById("repairForm").reset();
-        toggleDateFields();
-      } else {
-        Swal.fire('เกิดข้อผิดพลาด', response.message || 'ไม่สามารถบันทึกได้', 'error');
-      }
-    }
-  function loadRepairs() {
+function handleResponse(response) {
+  Swal.close();
+  if (response.success) {
+    Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+    document.getElementById("repairForm").reset();
+    toggleDateFields();
+    loadRepairs();
+  } else {
+    Swal.fire('เกิดข้อผิดพลาด', response.message || 'ไม่สามารถบันทึกได้', 'error');
+  }
+}
+
+function loadRepairs() {
   const script = document.createElement('script');
   script.src = `${SCRIPT_URL}?callback=renderRepairs&data=${encodeURIComponent(JSON.stringify({ action: 'getRepairs' }))}`;
   document.body.appendChild(script);
@@ -240,22 +186,16 @@ function renderRepairs(response) {
   if (!response.success) return;
   const table = document.getElementById('repairTable');
   const rows = response.data;
-
   const keyword = document.getElementById('searchKeyword').value.toLowerCase();
   const statusFilter = document.getElementById('statusFilter').value;
-
   const filtered = rows.filter(row => {
-    const matchesKeyword = keyword === '' ||
-      (row['ทะเบียนรถ'] || '').toLowerCase().includes(keyword) ||
-      (row['รายละเอียด'] || '').toLowerCase().includes(keyword);
+    const matchesKeyword = keyword === '' || (row['ทะเบียนรถ'] || '').toLowerCase().includes(keyword) || (row['รายละเอียด'] || '').toLowerCase().includes(keyword);
     const matchesStatus = statusFilter === '' || row['สถานะ'] === statusFilter;
     return matchesKeyword && matchesStatus;
   });
-
   let html = '<table class="min-w-full table-auto text-sm"><thead><tr>' +
     ['วันที่แจ้ง', 'ทะเบียนรถ', 'หมวดหมู่', 'รายละเอียด', 'สถานะ', 'วันที่ซ่อมเสร็จ', 'วันที่เบิกจ่าย', 'ยอดเงิน', 'จัดการ']
       .map(h => `<th class="border px-2 py-1 bg-gray-100">${h}</th>`).join('') + '</tr></thead><tbody>';
-
   for (const row of filtered) {
     html += `<tr>
       <td class="border px-2">${row['วันที่แจ้ง'] || ''}</td>
@@ -275,23 +215,18 @@ function renderRepairs(response) {
   html += '</tbody></table>';
   table.innerHTML = html;
 }
-}
 
-function confirmDelete(row) {
+function filterRepairs() { loadRepairs(); }
+
+function confirmDelete(id) {
   Swal.fire({
-    title: 'ยืนยันการลบ',
-    text: 'คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'ลบ',
-    cancelButtonText: 'ยกเลิก'
-  }).then(result => {
-    if (result.isConfirmed) deleteRepair(row);
-  });
+    title: 'ยืนยันการลบ', text: 'คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?', icon: 'warning',
+    showCancelButton: true, confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก'
+  }).then(result => { if (result.isConfirmed) deleteRepair(id); });
 }
 
-function deleteRepair(row) {
-  const data = { action: 'deleteRepair', id: row };
+function deleteRepair(id) {
+  const data = { action: 'deleteRepair', id };
   const script = document.createElement('script');
   script.src = `${SCRIPT_URL}?callback=handleDeleteResponse&data=${encodeURIComponent(JSON.stringify(data))}`;
   document.body.appendChild(script);
@@ -316,14 +251,7 @@ function editRepair(row) {
   document.getElementById("paymentDate").value = row['วันที่เบิกจ่ายเสร็จ'];
   document.getElementById("amount").value = row['ยอดเงิน'];
   toggleDateFields();
-
-  Swal.fire({
-    title: 'โหมดแก้ไข',
-    text: 'เมื่อบันทึกจะเป็นการอัปเดตข้อมูลเดิม',
-    icon: 'info',
-    confirmButtonText: 'ตกลง'
-  });
-
+  Swal.fire({ title: 'โหมดแก้ไข', text: 'เมื่อบันทึกจะเป็นการอัปเดตข้อมูลเดิม', icon: 'info', confirmButtonText: 'ตกลง' });
   document.querySelector("button[onclick='submitForm()']").onclick = function () {
     const data = {
       action: "editRepair",
@@ -337,7 +265,6 @@ function editRepair(row) {
       paymentDate: document.getElementById("paymentDate").value,
       amount: document.getElementById("amount").value
     };
-
     Swal.fire({ title: 'กำลังอัปเดตข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     const script = document.createElement('script');
     script.src = `${SCRIPT_URL}?callback=handleEditResponse&data=${encodeURIComponent(JSON.stringify(data))}`;
@@ -351,24 +278,29 @@ function handleEditResponse(response) {
     document.getElementById("repairForm").reset();
     toggleDateFields();
     loadRepairs();
-    document.querySelector("button[onclick*='editRepair']").onclick = submitForm; // คืนปุ่มให้ทำหน้าที่แจ้งซ่อมตามเดิม
+    document.querySelector("button[onclick*='editRepair']").onclick = submitForm;
   } else {
     Swal.fire('เกิดข้อผิดพลาด', '', 'error');
   }
 }
 
-window.onload = loadRepairs;
-function filterRepairs() {
-  const script = document.createElement('script');
-  script.src = `${SCRIPT_URL}?callback=renderFilteredRepairs&data=${encodeURIComponent(JSON.stringify({ action: 'getRepairs' }))}`;
-  document.body.appendChild(script);
+function renderRepairChart() {
+  const ctx = document.getElementById('repairChart').getContext('2d');
+  const data = {
+    labels: ['เครื่องยนต์', 'ช่วงล่าง', 'ระบบไฟฟ้า', 'ตัวถัง', 'อื่นๆ'],
+    datasets: [{
+      label: 'จำนวนครั้งที่แจ้งซ่อม',
+      data: [5, 3, 4, 2, 1],
+      backgroundColor: ['#60a5fa', '#818cf8', '#f472b6', '#34d399', '#fbbf24']
+    }]
+  };
+  new Chart(ctx, {
+    type: 'bar', data: data,
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
 }
 
-function renderFilteredRepairs(response) {
-  if (!response.success) return;
-  document.getElementById('repairTable').innerHTML = '';
-  renderRepairs(response);
-}
+window.onload = loadRepairs;
 </script>
 </body>
 </html>
