@@ -71,7 +71,7 @@
           <input type="number" id="amount" class="w-full border rounded p-2" />
         </div>
         <div class="md:col-span-2 text-right">
-          <button type="button" onclick="submitForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <button id="submitButton" type="button" onclick="submitForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             แจ้งซ่อม
           </button>
         </div>
@@ -252,7 +252,7 @@ function editRepair(row) {
   document.getElementById("amount").value = row['ยอดเงิน'];
   toggleDateFields();
   Swal.fire({ title: 'โหมดแก้ไข', text: 'เมื่อบันทึกจะเป็นการอัปเดตข้อมูลเดิม', icon: 'info', confirmButtonText: 'ตกลง' });
-  document.querySelector("button[onclick='submitForm()']").onclick = function () {
+  document.getElementById("submitButton").onclick = function () {
     const data = {
       action: "editRepair",
       id: row.ID,
@@ -278,7 +278,7 @@ function handleEditResponse(response) {
     document.getElementById("repairForm").reset();
     toggleDateFields();
     loadRepairs();
-    document.querySelector("button[onclick*='editRepair']").onclick = submitForm;
+    document.getElementById("submitButton").onclick = submitForm;
   } else {
     Swal.fire('เกิดข้อผิดพลาด', '', 'error');
   }
