@@ -147,17 +147,21 @@
         <button onclick="renderRepairChart()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">แสดงสถิติ</button>
       </div>
     </div>
-    <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 mb-6 text-sm text-gray-800">
-  <div id="totalRepairs" class="mb-2"></div>
-  <div id="inProgressCount" class="font-medium text-blue-700"></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 text-sm text-gray-800">
+    <div id="totalRepairs" class="mb-2"></div>
+  </div>
+  <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 text-sm text-gray-800">
+    <div id="inProgressCount" class="font-medium text-blue-700"></div>
+  </div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div class="w-full aspect-square"><canvas id="repairChart" class="w-full h-full"></canvas></div>
-  <div class="w-full aspect-square"><canvas id="statusChart" class="w-full h-full"></canvas></div>
+  <div class="w-full h-80"><canvas id="amountChart" class="w-full h-full"></canvas></div>
+  <div class="w-full h-80"><canvas id="statusChart" class="w-full h-full"></canvas></div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-  <div class="w-full aspect-square"><canvas id="amountChart" class="w-full h-full"></canvas></div>
-  <div class="w-full aspect-square"><canvas id="vehicleStatusChart" class="w-full h-full"></canvas></div>
+  <div class="w-full h-80"><canvas id="repairChart" class="w-full h-full"></canvas></div>
+  <div class="w-full h-80"><canvas id="vehicleStatusChart" class="w-full h-full"></canvas></div>
 </div>
   </section>
 </div>
@@ -387,56 +391,71 @@ function renderChartData(response) {
   document.getElementById('inProgressCount').innerText = `รถที่อยู่ระหว่างการซ่อม: ${inProgress} คัน จากทั้งหมด 28 คัน`;
 
   new Chart(document.getElementById('repairChart').getContext('2d'), {
-    type: 'pie',
-    data: {
-      labels: Object.keys(countByCategory),
-      datasets: [{
-        label: 'จำนวนแจ้งซ่อมตามหมวดหมู่',
-        data: Object.values(countByCategory),
-        backgroundColor: ['#60a5fa', '#818cf8', '#f472b6', '#34d399', '#fbbf24']
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'bottom' } }
+  type: 'pie',
+  data: {
+    labels: Object.keys(countByCategory),
+    datasets: [{
+      label: 'จำนวนแจ้งซ่อมตามหมวดหมู่',
+      data: Object.values(countByCategory),
+      backgroundColor: ['#60a5fa', '#818cf8', '#f472b6', '#34d399', '#fbbf24']
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom' },
+      title: { display: true, text: 'หมวดหมู่การชำรุด' }
     }
-  });
+  }
+});
 
   new Chart(document.getElementById('statusChart').getContext('2d'), {
-    type: 'bar',
-    data: {
-      labels: Object.keys(countByStatus),
-      datasets: [{
-        label: 'สถานะการดำเนินการ',
-        data: Object.values(countByStatus),
-        backgroundColor: '#34d399'
-      }]
+  type: 'bar',
+  data: {
+    labels: Object.keys(countByStatus),
+    datasets: [{
+      label: 'สถานะการดำเนินการ',
+      data: Object.values(countByStatus),
+      backgroundColor: '#34d399'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'จำนวนรายการแจ้งซ่อมตามสถานะ' }
     },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
+    scales: {
+      x: { title: { display: true, text: 'สถานะ' } },
+      y: { beginAtZero: true, title: { display: true, text: 'จำนวนรายการ' } }
     }
-  });
+  }
+});
 
   new Chart(document.getElementById('amountChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: Object.keys(amountByMonth),
-      datasets: [{
-        label: 'ยอดใช้จ่ายรายเดือน (บาท)',
-        data: Object.values(amountByMonth),
-        borderColor: '#f472b6',
-        backgroundColor: '#f472b6',
-        fill: false
-      }]
+  type: 'line',
+  data: {
+    labels: Object.keys(amountByMonth),
+    datasets: [{
+      label: 'ยอดใช้จ่ายรายเดือน (บาท)',
+      data: Object.values(amountByMonth),
+      borderColor: '#f472b6',
+      backgroundColor: '#f472b6',
+      fill: false
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: true },
+      title: { display: true, text: 'ยอดใช้จ่ายรวมรายเดือน' }
     },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: true } },
-      scales: { y: { beginAtZero: true } }
+    scales: {
+      x: { title: { display: true, text: 'เดือน' } },
+      y: { beginAtZero: true, title: { display: true, text: 'จำนวนเงิน (บาท)' } }
     }
-  });
+  }
+});
 
   new Chart(document.getElementById('vehicleStatusChart').getContext('2d'), {
     type: 'doughnut',
