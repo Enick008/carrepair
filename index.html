@@ -12,13 +12,40 @@
     body { font-family: 'Prompt', sans-serif; }
     .tab-active { border-bottom: 2px solid #1e3a8a; color: #1e3a8a; }
     .tab-inactive { color: #6b7280; }
+
+    /* ปรับให้เหมาะกับมือถือ */
+    input, select, textarea {
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    button {
+      font-size: 0.875rem;
+    }
+    table th, table td {
+      padding: 0.5rem;
+    }
+    section {
+      padding: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    @media (min-width: 768px) {
+      section {
+        padding: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body class="bg-blue-50">
-  <header class="text-center py-4 bg-blue-600 text-white text-xl font-semibold">
-    ระบบแจ้งซ่อมรถส่วนกลาง
-  </header>
-  <div class="tabs flex mb-4 border-b">
+  <header class="text-center py-4 bg-orange-500 text-white">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Seal_of_Ko_Samui.png" alt="Seal of Ko Samui" style="height: 100px; width: auto; margin: 0 auto;">
+  <h1 class="text-2xl font-semibold mt-2">ระบบแจ้งซ่อมรถส่วนกลาง</h1>
+</header>
+  <div class="tabs flex flex-wrap justify-center mb-4 border-b">
   <button class="tab-active px-4 py-2" onclick="showTab('mainTab')">แจ้งซ่อม</button>
   <button class="tab-inactive px-4 py-2" onclick="showTab('statsTab')">สถิติ</button>
 </div>
@@ -97,7 +124,7 @@
     <!-- ตารางรายการ -->
     <section class="bg-white rounded-xl shadow-md p-4 mb-6">
       <h2 class="text-lg font-bold mb-4">รายการแจ้งซ่อม</h2>
-      <div id="repairTable" class="overflow-auto">
+      <div id="repairTable" class="overflow-x-auto w-full">
         <!-- จะเติมข้อมูลด้วย JavaScript เช่น สถานะ = กำลังซ่อม, กำลังเบิกจ่าย, แล้วเสร็จ-->
       </div>
     </section>
@@ -128,13 +155,6 @@
 
     <canvas id="statusChart" height="100" class="mt-6"></canvas>
     <canvas id="amountChart" height="100" class="mt-6"></canvas>
-    <canvas id="vehicleStatusChart" height="100" class="mt-6"></canvas>
-  </section>
-</div>
-    <canvas id="repairChart" height="100"></canvas>
-<div id="totalRepairs" class="text-sm text-gray-600 mt-2"></div>
-<div id="inProgressCount" class="text-sm text-blue-700 mt-2 font-medium"></div>
-    <canvas id="statusChart" height="100" class="mt-6"></canvas>
     <canvas id="vehicleStatusChart" height="100" class="mt-6"></canvas>
   </section>
 </div>
@@ -221,7 +241,7 @@ function renderRepairs(response) {
     const matchesStatus = statusFilter === '' || row['สถานะ'] === statusFilter;
     return matchesKeyword && matchesStatus;
   });
-  let html = '<table class="min-w-full table-auto text-sm"><thead><tr>' +
+  let html = '<table class="min-w-full table-auto text-sm w-full"><thead><tr>' +
     ['วันที่แจ้ง', 'ทะเบียนรถ', 'หมวดหมู่', 'รายละเอียด', 'สถานะ', 'วันที่ซ่อมเสร็จ', 'วันที่เบิกจ่าย', 'ยอดเงิน', 'จัดการ']
       .map(h => `<th class="border px-2 py-1 bg-gray-100">${h}</th>`).join('') + '</tr></thead><tbody>';
   for (const row of filtered) {
@@ -435,5 +455,8 @@ function renderChartData(response) {
 }
 window.onload = loadRepairs;
 </script>
+<footer class="text-center bg-orange-100 text-gray-700 text-sm py-4 mt-10">
+  ©2025 ระบบรับแจ้งซ่อมรถส่วนกลาง กองช่างสุขาภิบาล โดย นายธีรศักดิ์ พูลเขาล้าน
+</footer>
 </body>
 </html>
