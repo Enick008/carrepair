@@ -106,10 +106,41 @@
   </div>
 <div id="statsTab" class="hidden">
   <section class="bg-white rounded-xl shadow-md p-4 mb-6">
-    <h2 class="text-lg font-bold mb-4">สถิติ</h2>
+    <h2 class="text-lg font-bold mb-4">สถิติภาพรวมการแจ้งซ่อม</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label>จากวันที่</label>
+        <input type="date" id="startDate" class="w-full border rounded p-2">
+      </div>
+      <div>
+        <label>ถึงวันที่</label>
+        <input type="date" id="endDate" class="w-full border rounded p-2">
+      </div>
+      <div class="md:col-span-2 text-right">
+        <button onclick="renderRepairChart()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">แสดงสถิติ</button>
+      </div>
+    </div>
+
+    <!-- จำนวนแจ้งซ่อมตามช่วงเวลา -->
     <canvas id="repairChart" height="100"></canvas>
+    <div id="totalRepairs" class="text-sm text-gray-600 mt-2"></div>
+    <div id="inProgressCount" class="text-sm text-blue-700 mt-2 font-medium"></div>
+
+    <!-- สถานะของการแจ้งซ่อม -->
+    <canvas id="statusChart" height="100" class="mt-6"></canvas>
+
+    <!-- สถานะรถที่พร้อม/ระหว่างซ่อม -->
+    <canvas id="vehicleStatusChart" height="100" class="mt-6"></canvas>
+
+    <!-- ค่าเฉลี่ยต่อรายการ -->
+    <canvas id="averageCostChart" height="100" class="mt-6"></canvas>
+
+    <!-- รายการที่มีค่าใช้จ่ายสูงสุด -->
+    <canvas id="topCostItemsChart" height="100" class="mt-6"></canvas>
   </section>
 </div>
+
 <!-- ฟ้าใสจัด script ใหม่ให้ทำงานได้จริง 100% -->
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsAJEOBGxdKJ7jgC5Z4uhtGpbYRynt5X3_u7_RbCGL--WUI5QlyLLM76SlW-wNODWa/exec";
