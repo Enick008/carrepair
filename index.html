@@ -147,12 +147,18 @@
         <button onclick="renderRepairChart()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">แสดงสถิติ</button>
       </div>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-  <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 text-sm text-gray-800">
-    <div id="totalRepairs" class="mb-2"></div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 text-base font-semibold">
+  <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 text-center text-gray-800">
+    <div id="totalRepairs"></div>
   </div>
-  <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 text-sm text-gray-800">
-    <div id="inProgressCount" class="font-medium text-blue-700"></div>
+  <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 text-center text-gray-800">
+    <div id="inProgressCount"></div>
+  </div>
+  <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 text-center text-gray-800">
+    <div id="avgCost"></div>
+  </div>
+  <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 text-center text-gray-800">
+    <div id="maxCostDetail"></div>
   </div>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -384,10 +390,9 @@ function renderChartData(response) {
   const pending = countByStatus['ขออนุมัติ'] || 0;
   const usable = 28 - inProgress - pending;
 
-  document.getElementById('totalRepairs').innerHTML = `
-    <p>จำนวนการแจ้งซ่อมทั้งหมด: ${filtered.length} รายการ</p>
-    <p>ค่าใช้จ่ายเฉลี่ยต่อการซ่อม: ${avgCost} บาท</p>
-    <p>รายการที่มีค่าใช้จ่ายสูงสุด: ${maxCost.toLocaleString()} บาท (${maxCostDetail})</p>`;
+  document.getElementById('totalRepairs').innerText = `จำนวนการแจ้งซ่อมทั้งหมด: ${filtered.length} รายการ`;
+document.getElementById('avgCost').innerText = `ค่าใช้จ่ายเฉลี่ยต่อการซ่อม: ${avgCost} บาท`;
+document.getElementById('maxCostDetail').innerText = `รายการที่มีค่าใช้จ่ายสูงสุด: ${maxCost.toLocaleString()} บาท (${maxCostDetail})`;
   document.getElementById('inProgressCount').innerText = `รถที่อยู่ระหว่างการซ่อม: ${inProgress} คัน จากทั้งหมด 28 คัน`;
 
   new Chart(document.getElementById('repairChart').getContext('2d'), {
