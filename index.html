@@ -151,11 +151,14 @@
   <div id="totalRepairs" class="mb-2"></div>
   <div id="inProgressCount" class="font-medium text-blue-700"></div>
 </div>
-<canvas id="repairChart" height="100"></canvas>
-
-    <canvas id="statusChart" height="100" class="mt-6"></canvas>
-    <canvas id="amountChart" height="100" class="mt-6"></canvas>
-    <canvas id="vehicleStatusChart" height="100" class="mt-6"></canvas>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div class="w-full aspect-square"><canvas id="repairChart" class="w-full h-full"></canvas></div>
+  <div class="w-full aspect-square"><canvas id="statusChart" class="w-full h-full"></canvas></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+  <div class="w-full aspect-square"><canvas id="amountChart" class="w-full h-full"></canvas></div>
+  <div class="w-full aspect-square"><canvas id="vehicleStatusChart" class="w-full h-full"></canvas></div>
+</div>
   </section>
 </div>
 <!-- ฟ้าใสจัด script ใหม่ให้ทำงานได้จริง 100% -->
