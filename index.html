@@ -128,6 +128,16 @@
   if (tabId === 'statsTab') {
     renderRepairChart();
   }
+};
+
+  document.getElementById(tabId).classList.remove('hidden');
+  const activeBtn = Array.from(document.querySelectorAll('.tabs button')).find(b => b.textContent.trim() === (tabId === 'mainTab' ? 'แจ้งซ่อม' : 'สถิติ'));
+  activeBtn.classList.add('tab-active');
+  activeBtn.classList.remove('tab-inactive');
+
+  if (tabId === 'statsTab') {
+    renderRepairChart();
+  }
 });
 
     document.getElementById(tabId).classList.remove('hidden');
@@ -159,7 +169,7 @@ function renderRepairChart() {
   });
 }
 </script>
-</main>
+
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsAJEOBGxdKJ7jgC5Z4uhtGpbYRynt5X3_u7_RbCGL--WUI5QlyLLM76SlW-wNODWa/exec";
