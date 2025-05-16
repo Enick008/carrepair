@@ -225,10 +225,23 @@ function renderRepairs(response) {
   if (!response.success) return;
   const table = document.getElementById('repairTable');
   const rows = response.data;
+
+  const keyword = document.getElementById('searchKeyword').value.toLowerCase();
+  const statusFilter = document.getElementById('statusFilter').value;
+
+  const filtered = rows.filter(row => {
+    const matchesKeyword = keyword === '' ||
+      (row['ทะเบียนรถ'] || '').toLowerCase().includes(keyword) ||
+      (row['รายละเอียด'] || '').toLowerCase().includes(keyword);
+    const matchesStatus = statusFilter === '' || row['สถานะ'] === statusFilter;
+    return matchesKeyword && matchesStatus;
+  });
+
   let html = '<table class="min-w-full table-auto text-sm"><thead><tr>' +
     ['วันที่แจ้ง', 'ทะเบียนรถ', 'หมวดหมู่', 'รายละเอียด', 'สถานะ', 'วันที่ซ่อมเสร็จ', 'วันที่เบิกจ่าย', 'ยอดเงิน', 'จัดการ']
       .map(h => `<th class="border px-2 py-1 bg-gray-100">${h}</th>`).join('') + '</tr></thead><tbody>';
-  for (const row of rows) {
+
+  for (const row of filtered) {
     html += `<tr>
       <td class="border px-2">${row['วันที่แจ้ง'] || ''}</td>
       <td class="border px-2">${row['ทะเบียนรถ'] || ''}</td>
@@ -240,12 +253,13 @@ function renderRepairs(response) {
       <td class="border px-2">${row['ยอดเงิน'] || ''}</td>
       <td class="border px-2 text-center">
         <button onclick='editRepair(${JSON.stringify(row)})' class="text-blue-600 underline text-xs">แก้ไข</button> |
-        <button onclick='confirmDelete(${row.ID})' class="text-red-600 underline text-xs">ลบ</button>
+        <button onclick='confirmDelete("${row.ID}")' class="text-red-600 underline text-xs">ลบ</button>
       </td>
     </tr>`;
   }
   html += '</tbody></table>';
   table.innerHTML = html;
+}
 }
 
 function confirmDelete(row) {
@@ -329,6 +343,9 @@ function handleEditResponse(response) {
 }
 
 window.onload = loadRepairs;
+function filterRepairs() {
+  loadRepairs();
+}
 </script>
 </body>
 </html>
