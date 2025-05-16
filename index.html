@@ -175,15 +175,24 @@ function renderRepairChart() {
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsAJEOBGxdKJ7jgC5Z4uhtGpbYRynt5X3_u7_RbCGL--WUI5QlyLLM76SlW-wNODWa/exec";
 
     function toggleDateFields() {
-      const status = document.getElementById("status").value;
-      document.getElementById("repairDateField").classList.add("hidden");
-      document.getElementById("paymentDateField").classList.add("hidden");
-      document.getElementById("amountField").classList.add("hidden");
+  const status = document.getElementById("status").value;
+  const repairField = document.getElementById("repairDateField");
+  const paymentField = document.getElementById("paymentDateField");
+  const amountField = document.getElementById("amountField");
 
-      if (status === "กำลังเบิกจ่าย") {
-        document.getElementById("repairDateField").classList.remove("hidden");
-        document.getElementById("amountField").classList.remove("hidden");
-      } else if (status === "แล้วเสร็จ") {
+  repairField.classList.add("hidden");
+  paymentField.classList.add("hidden");
+  amountField.classList.add("hidden");
+
+  if (status === "กำลังเบิกจ่าย") {
+    repairField.classList.remove("hidden");
+    amountField.classList.remove("hidden");
+  } else if (status === "แล้วเสร็จ") {
+    repairField.classList.remove("hidden");
+    paymentField.classList.remove("hidden");
+    amountField.classList.remove("hidden");
+  }
+} else if (status === "แล้วเสร็จ") {
         document.getElementById("repairDateField").classList.remove("hidden");
         document.getElementById("paymentDateField").classList.remove("hidden");
         document.getElementById("amountField").classList.remove("hidden");
