@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบแจ้งซ่อมรถส่วนกลาง</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'Prompt', sans-serif; }
+    .tab-active { border-bottom: 2px solid #1e3a8a; color: #1e3a8a; }
+    .tab-inactive { color: #6b7280; }
+  </style>
+</head>
+<body class="bg-blue-50">
+  <header class="text-center py-4 bg-blue-600 text-white text-xl font-semibold">
+    ระบบแจ้งซ่อมรถส่วนกลาง
+  </header>
+  <div class="tabs flex mb-4 border-b">
+  <button class="tab-active px-4 py-2" onclick="showTab('mainTab')">แจ้งซ่อม</button>
+  <button class="tab-inactive px-4 py-2" onclick="showTab('statsTab')">สถิติ</button>
+</div>
+<div id="mainTab">
+    <!-- Form แจ้งซ่อม -->
+    <section class="bg-white rounded-xl shadow-md p-4 mb-6">
+      <h2 class="text-lg font-bold mb-4">ฟอร์มแจ้งซ่อม</h2>
+      <form id="repairForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label>วันที่แจ้ง</label>
+          <input type="date" id="reportDate" class="w-full border rounded p-2" />
+        </div>
+        <div>
+          <label>ทะเบียนรถ</label>
+          <input type="text" id="licensePlate" class="w-full border rounded p-2" />
+        </div>
+        <div>
+          <label>หมวดหมู่ชำรุด</label>
+          <select id="category" class="w-full border rounded p-2">
+            <option value="เครื่องยนต์">เครื่องยนต์</option>
+            <option value="ช่วงล่าง">ช่วงล่าง</option>
+            <option value="ระบบไฟฟ้า">ระบบไฟฟ้า</option>
+            <option value="ตัวถัง">ตัวถัง</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+        <div>
+          <label>สถานะการดำเนินการ</label>
+          <select id="status" class="w-full border rounded p-2" onchange="toggleDateFields()">
+            <option value="ขออนุมัติ">ขออนุมัติ</option>
+            <option value="กำลังซ่อม">กำลังซ่อม</option>
+            <option value="กำลังเบิกจ่าย">กำลังเบิกจ่าย</option>
+            <option value="แล้วเสร็จ">แล้วเสร็จ</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label>รายละเอียด</label>
+          <textarea id="details" class="w-full border rounded p-2"></textarea>
+        </div>
+        <div id="repairDateField" class="hidden">
+          <label>วันที่ซ่อมเสร็จ</label>
+          <input type="date" id="repairDate" class="w-full border rounded p-2" />
+        </div>
+        <div id="paymentDateField" class="hidden">
+          <label>วันที่เบิกจ่ายเสร็จ</label>
+          <input type="date" id="paymentDate" class="w-full border rounded p-2" />
+        </div>
+        <div id="amountField" class="hidden">
+          <label>ยอดเงิน (บาท)</label>
+          <input type="number" id="amount" class="w-full border rounded p-2" />
+        </div>
+        <div class="md:col-span-2 text-right">
+          <button type="button" onclick="submitForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            แจ้งซ่อม
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ค้นหา + กรองสถานะ -->
+    <section class="bg-white rounded-xl shadow-md p-4 mb-6">
+      <h2 class="text-lg font-bold mb-4">ค้นหา / กรองสถานะ</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input type="text" id="searchKeyword" placeholder="ค้นหาทะเบียนหรือรายละเอียด" class="p-2 border rounded w-full">
+        <select id="statusFilter" class="p-2 border rounded w-full">
+          <option value="">ทุกสถานะ</option>
+          <option value="ขออนุมัติ">ขออนุมัติ</option>
+          <option value="กำลังซ่อม">กำลังซ่อม</option>
+          <option value="กำลังเบิกจ่าย">กำลังเบิกจ่าย</option>
+          <option value="แล้วเสร็จ">แล้วเสร็จ</option>
+        </select>
+        <button onclick="filterRepairs()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">ค้นหา</button>
+      </div>
+    </section>
+
+    <!-- ตารางรายการ -->
+    <section class="bg-white rounded-xl shadow-md p-4 mb-6">
+      <h2 class="text-lg font-bold mb-4">รายการแจ้งซ่อม</h2>
+      <div id="repairTable" class="overflow-auto">
+        <!-- จะเติมข้อมูลด้วย JavaScript เช่น สถานะ = กำลังซ่อม, กำลังเบิกจ่าย, แล้วเสร็จ-->
+      </div>
+    </section>
+
+    
+  </div>
+<div id="statsTab" class="hidden">
+  <section class="bg-white rounded-xl shadow-md p-4 mb-6">
+    <h2 class="text-lg font-bold mb-4">สถิติ</h2>
+    <canvas id="repairChart" height="100"></canvas>
+  </section>
+</div>
+<script>
+  function showTab(tabId) {
+  document.getElementById('mainTab').classList.add('hidden');
+  document.getElementById('statsTab').classList.add('hidden');
+
+  document.querySelectorAll('.tabs button').forEach(btn => {
+    btn.classList.remove('tab-active');
+    btn.classList.add('tab-inactive');
+  });
+
+  document.getElementById(tabId).classList.remove('hidden');
+  const activeBtn = Array.from(document.querySelectorAll('.tabs button')).find(b => b.textContent.trim() === (tabId === 'mainTab' ? 'แจ้งซ่อม' : 'สถิติ'));
+  activeBtn.classList.add('tab-active');
+  activeBtn.classList.remove('tab-inactive');
+
+  if (tabId === 'statsTab') {
+    renderRepairChart();
+  }
+});
+
+    document.getElementById(tabId).classList.remove('hidden');
+    const activeBtn = Array.from(document.querySelectorAll('.tabs button')).find(b => b.textContent.trim() === (tabId === 'mainTab' ? 'แจ้งซ่อม' : 'สถิติ'));
+    activeBtn.classList.add('tab-active');
+    activeBtn.classList.remove('tab-inactive');
+  }
+function renderRepairChart() {
+  const ctx = document.getElementById('repairChart').getContext('2d');
+  // ตัวอย่างข้อมูลจำลอง (ควรดึงข้อมูลจริงจาก Google Apps Script)
+  const data = {
+    labels: ['เครื่องยนต์', 'ช่วงล่าง', 'ระบบไฟฟ้า', 'ตัวถัง', 'อื่นๆ'],
+    datasets: [{
+      label: 'จำนวนครั้งที่แจ้งซ่อม',
+      data: [5, 3, 4, 2, 1],
+      backgroundColor: ['#60a5fa', '#818cf8', '#f472b6', '#34d399', '#fbbf24']
+    }]
+  };
+  new Chart(ctx, {
+    type: 'bar',
+    data: data,
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+</script>
+</main>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsAJEOBGxdKJ7jgC5Z4uhtGpbYRynt5X3_u7_RbCGL--WUI5QlyLLM76SlW-wNODWa/exec";
+
+    function toggleDateFields() {
+      const status = document.getElementById("status").value;
+      document.getElementById("repairDateField").classList.add("hidden");
+      document.getElementById("paymentDateField").classList.add("hidden");
+      document.getElementById("amountField").classList.add("hidden");
+
+      if (status === "กำลังเบิกจ่าย") {
+        document.getElementById("repairDateField").classList.remove("hidden");
+        document.getElementById("amountField").classList.remove("hidden");
+      } else if (status === "แล้วเสร็จ") {
+        document.getElementById("repairDateField").classList.remove("hidden");
+        document.getElementById("paymentDateField").classList.remove("hidden");
+        document.getElementById("amountField").classList.remove("hidden");
+      }
+    }
+
+    function submitForm() {
+      const data = {
+        action: "addRepair",
+        date: document.getElementById("reportDate").value,
+        license: document.getElementById("licensePlate").value,
+        category: document.getElementById("category").value,
+        detail: document.getElementById("details").value,
+        status: document.getElementById("status").value,
+        repairDate: document.getElementById("repairDate").value,
+        paymentDate: document.getElementById("paymentDate").value,
+        amount: document.getElementById("amount").value
+      };
+
+      Swal.fire({
+        title: 'กำลังบันทึกข้อมูล...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      fetch(`${SCRIPT_URL}?callback=handleResponse&data=${encodeURIComponent(JSON.stringify(data))}`, {
+        method: "GET",
+        mode: "no-cors"
+      });
+    }
+
+    function handleResponse(response) {
+      Swal.close();
+      if (response.success) {
+        Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+        document.getElementById("repairForm").reset();
+        toggleDateFields();
+      } else {
+        Swal.fire('เกิดข้อผิดพลาด', response.message || 'ไม่สามารถบันทึกได้', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
