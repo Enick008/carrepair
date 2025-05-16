@@ -181,28 +181,28 @@ function renderRepairChart() {
     }
 
     function submitForm() {
-      const data = {
-        action: "addRepair",
-        date: document.getElementById("reportDate").value,
-        license: document.getElementById("licensePlate").value,
-        category: document.getElementById("category").value,
-        detail: document.getElementById("details").value,
-        status: document.getElementById("status").value,
-        repairDate: document.getElementById("repairDate").value,
-        paymentDate: document.getElementById("paymentDate").value,
-        amount: document.getElementById("amount").value
-      };
+  const data = {
+    action: "addRepair",
+    date: document.getElementById("reportDate").value,
+    license: document.getElementById("licensePlate").value,
+    category: document.getElementById("category").value,
+    detail: document.getElementById("details").value,
+    status: document.getElementById("status").value,
+    repairDate: document.getElementById("repairDate").value,
+    paymentDate: document.getElementById("paymentDate").value,
+    amount: document.getElementById("amount").value
+  };
 
-      Swal.fire({
-        title: 'กำลังบันทึกข้อมูล...',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-      });
+  Swal.fire({
+    title: 'กำลังบันทึกข้อมูล...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
 
-      fetch(`${SCRIPT_URL}?callback=handleResponse&data=${encodeURIComponent(JSON.stringify(data))}`, {
-        method: "GET",
-        mode: "no-cors"
-      });
+  const script = document.createElement('script');
+  script.src = `${SCRIPT_URL}?callback=handleResponse&data=${encodeURIComponent(JSON.stringify(data))}`;
+  document.body.appendChild(script);
+}
     }
 
     function handleResponse(response) {
@@ -215,6 +215,120 @@ function renderRepairChart() {
         Swal.fire('เกิดข้อผิดพลาด', response.message || 'ไม่สามารถบันทึกได้', 'error');
       }
     }
-  </script>
+  function loadRepairs() {
+  const script = document.createElement('script');
+  script.src = `${SCRIPT_URL}?callback=renderRepairs&data=${encodeURIComponent(JSON.stringify({ action: 'getRepairs' }))}`;
+  document.body.appendChild(script);
+}
+
+function renderRepairs(response) {
+  if (!response.success) return;
+  const table = document.getElementById('repairTable');
+  const rows = response.data;
+  let html = '<table class="min-w-full table-auto text-sm"><thead><tr>' +
+    ['วันที่แจ้ง', 'ทะเบียนรถ', 'หมวดหมู่', 'รายละเอียด', 'สถานะ', 'วันที่ซ่อมเสร็จ', 'วันที่เบิกจ่าย', 'ยอดเงิน', 'จัดการ']
+      .map(h => `<th class="border px-2 py-1 bg-gray-100">${h}</th>`).join('') + '</tr></thead><tbody>';
+  for (const row of rows) {
+    html += `<tr>
+      <td class="border px-2">${row['วันที่แจ้ง'] || ''}</td>
+      <td class="border px-2">${row['ทะเบียนรถ'] || ''}</td>
+      <td class="border px-2">${row['หมวดหมู่ชำรุด'] || ''}</td>
+      <td class="border px-2">${row['รายละเอียด'] || ''}</td>
+      <td class="border px-2">${row['สถานะ'] || ''}</td>
+      <td class="border px-2">${row['วันที่ซ่อมเสร็จ'] || ''}</td>
+      <td class="border px-2">${row['วันที่เบิกจ่ายเสร็จ'] || ''}</td>
+      <td class="border px-2">${row['ยอดเงิน'] || ''}</td>
+      <td class="border px-2 text-center">
+        <button onclick='editRepair(${JSON.stringify(row)})' class="text-blue-600 underline text-xs">แก้ไข</button> |
+        <button onclick='confirmDelete(${row.row})' class="text-red-600 underline text-xs">ลบ</button>
+      </td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  table.innerHTML = html;
+}
+
+function confirmDelete(row) {
+  Swal.fire({
+    title: 'ยืนยันการลบ',
+    text: 'คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'ลบ',
+    cancelButtonText: 'ยกเลิก'
+  }).then(result => {
+    if (result.isConfirmed) deleteRepair(row);
+  });
+}
+
+function deleteRepair(row) {
+  const data = { action: 'deleteRepair', row };
+  const script = document.createElement('script');
+  script.src = `${SCRIPT_URL}?callback=handleDeleteResponse&data=${encodeURIComponent(JSON.stringify(data))}`;
+  document.body.appendChild(script);
+}
+
+function handleDeleteResponse(response) {
+  if (response.success) {
+    Swal.fire('ลบแล้ว', '', 'success');
+    loadRepairs();
+  } else {
+    Swal.fire('ผิดพลาด', 'ไม่สามารถลบได้', 'error');
+  }
+}
+
+function editRepair(row) {
+  document.getElementById("reportDate").value = row['วันที่แจ้ง'];
+  document.getElementById("licensePlate").value = row['ทะเบียนรถ'];
+  document.getElementById("category").value = row['หมวดหมู่ชำรุด'];
+  document.getElementById("details").value = row['รายละเอียด'];
+  document.getElementById("status").value = row['สถานะ'];
+  document.getElementById("repairDate").value = row['วันที่ซ่อมเสร็จ'];
+  document.getElementById("paymentDate").value = row['วันที่เบิกจ่ายเสร็จ'];
+  document.getElementById("amount").value = row['ยอดเงิน'];
+  toggleDateFields();
+
+  Swal.fire({
+    title: 'โหมดแก้ไข',
+    text: 'เมื่อบันทึกจะเป็นการอัปเดตข้อมูลเดิม',
+    icon: 'info',
+    confirmButtonText: 'ตกลง'
+  });
+
+  document.querySelector("button[onclick='submitForm()']").onclick = function () {
+    const data = {
+      action: "editRepair",
+      row: row.row,
+      date: document.getElementById("reportDate").value,
+      license: document.getElementById("licensePlate").value,
+      category: document.getElementById("category").value,
+      detail: document.getElementById("details").value,
+      status: document.getElementById("status").value,
+      repairDate: document.getElementById("repairDate").value,
+      paymentDate: document.getElementById("paymentDate").value,
+      amount: document.getElementById("amount").value
+    };
+
+    Swal.fire({ title: 'กำลังอัปเดตข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    const script = document.createElement('script');
+    script.src = `${SCRIPT_URL}?callback=handleEditResponse&data=${encodeURIComponent(JSON.stringify(data))}`;
+    document.body.appendChild(script);
+  }
+}
+
+function handleEditResponse(response) {
+  if (response.success) {
+    Swal.fire('อัปเดตเรียบร้อย', '', 'success');
+    document.getElementById("repairForm").reset();
+    toggleDateFields();
+    loadRepairs();
+    document.querySelector("button[onclick*='editRepair']").onclick = submitForm; // คืนปุ่มให้ทำหน้าที่แจ้งซ่อมตามเดิม
+  } else {
+    Swal.fire('เกิดข้อผิดพลาด', '', 'error');
+  }
+}
+
+window.onload = loadRepairs;
+</script>
 </body>
 </html>
