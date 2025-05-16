@@ -107,7 +107,6 @@
 <div id="statsTab" class="hidden">
   <section class="bg-white rounded-xl shadow-md p-4 mb-6">
     <h2 class="text-lg font-bold mb-4">สถิติภาพรวมการแจ้งซ่อม</h2>
-
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
       <div>
         <label>จากวันที่</label>
@@ -121,26 +120,14 @@
         <button onclick="renderRepairChart()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">แสดงสถิติ</button>
       </div>
     </div>
-
-    <!-- จำนวนแจ้งซ่อมตามช่วงเวลา -->
     <canvas id="repairChart" height="100"></canvas>
-    <div id="totalRepairs" class="text-sm text-gray-600 mt-2"></div>
-    <div id="inProgressCount" class="text-sm text-blue-700 mt-2 font-medium"></div>
-
-    <!-- สถานะของการแจ้งซ่อม -->
+<div id="totalRepairs" class="text-sm text-gray-600 mt-2"></div>
+<div id="inProgressCount" class="text-sm text-blue-700 mt-2 font-medium"></div>
     <canvas id="statusChart" height="100" class="mt-6"></canvas>
-
-    <!-- สถานะรถที่พร้อม/ระหว่างซ่อม -->
-    <canvas id="vehicleStatusChart" height="100" class="mt-6"></canvas>
-
-    <!-- ค่าเฉลี่ยต่อรายการ -->
-    <canvas id="averageCostChart" height="100" class="mt-6"></canvas>
-
-    <!-- รายการที่มีค่าใช้จ่ายสูงสุด -->
-    <canvas id="topCostItemsChart" height="100" class="mt-6"></canvas>
+    $1
+<canvas id="vehicleStatusChart" height="100" class="mt-6"></canvas>
   </section>
 </div>
-
 <!-- ฟ้าใสจัด script ใหม่ให้ทำงานได้จริง 100% -->
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsAJEOBGxdKJ7jgC5Z4uhtGpbYRynt5X3_u7_RbCGL--WUI5QlyLLM76SlW-wNODWa/exec";
@@ -316,21 +303,126 @@ function handleEditResponse(response) {
 }
 
 function renderRepairChart() {
-  const ctx = document.getElementById('repairChart').getContext('2d');
-  const data = {
-    labels: ['เครื่องยนต์', 'ช่วงล่าง', 'ระบบไฟฟ้า', 'ตัวถัง', 'อื่นๆ'],
-    datasets: [{
-      label: 'จำนวนครั้งที่แจ้งซ่อม',
-      data: [5, 3, 4, 2, 1],
-      backgroundColor: ['#60a5fa', '#818cf8', '#f472b6', '#34d399', '#fbbf24']
-    }]
-  };
-  new Chart(ctx, {
-    type: 'bar', data: data,
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-  });
+  const script = document.createElement('script');
+  script.src = `${SCRIPT_URL}?callback=renderChartData&data=${encodeURIComponent(JSON.stringify({ action: 'getRepairs' }))}`;
+  document.body.appendChild(script);
 }
 
+function renderChartData(response) {
+  if (!response.success) return;
+
+  const rows = response.data;
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
+
+  const filtered = rows.filter(row => {
+    const d = new Date(row['วันที่แจ้ง']);
+    return (!start || new Date(start) <= d) && (!end || d <= new Date(end));
+  });
+
+  const countByCategory = {};
+  const countByStatus = {};
+  let totalAmount = 0;
+  const amountByMonth = {};
+  let maxCost = 0;
+  let maxCostDetail = '';
+
+  for (const row of filtered) {
+    countByCategory[row['หมวดหมู่ชำรุด']] = (countByCategory[row['หมวดหมู่ชำรุด']] || 0) + 1;
+    countByStatus[row['สถานะ']] = (countByStatus[row['สถานะ']] || 0) + 1;
+
+    const amount = parseFloat(row['ยอดเงิน']) || 0;
+    totalAmount += amount;
+    if (amount > maxCost) {
+      maxCost = amount;
+      maxCostDetail = `${row['ทะเบียนรถ'] || ''} (${row['รายละเอียด'] || ''})`;
+    }
+
+    const month = (row['วันที่แจ้ง'] || '').slice(0, 7);
+    amountByMonth[month] = (amountByMonth[month] || 0) + amount;
+  }
+
+  const avgCost = filtered.length > 0 ? (totalAmount / filtered.length).toFixed(2) : 0;
+  const inProgress = countByStatus['กำลังซ่อม'] || 0;
+  const pending = countByStatus['ขออนุมัติ'] || 0;
+  const usable = 28 - inProgress - pending;
+
+  document.getElementById('totalRepairs').innerHTML = `
+    <p>จำนวนการแจ้งซ่อมทั้งหมด: ${filtered.length} รายการ</p>
+    <p>ค่าใช้จ่ายเฉลี่ยต่อการซ่อม: ${avgCost} บาท</p>
+    <p>รายการที่มีค่าใช้จ่ายสูงสุด: ${maxCost.toLocaleString()} บาท (${maxCostDetail})</p>`;
+  document.getElementById('inProgressCount').innerText = `รถที่อยู่ระหว่างการซ่อม: ${inProgress} คัน จากทั้งหมด 28 คัน`;
+
+  new Chart(document.getElementById('repairChart').getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: Object.keys(countByCategory),
+      datasets: [{
+        label: 'จำนวนแจ้งซ่อมตามหมวดหมู่',
+        data: Object.values(countByCategory),
+        backgroundColor: ['#60a5fa', '#818cf8', '#f472b6', '#34d399', '#fbbf24']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  new Chart(document.getElementById('statusChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(countByStatus),
+      datasets: [{
+        label: 'สถานะการดำเนินการ',
+        data: Object.values(countByStatus),
+        backgroundColor: '#34d399'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  new Chart(document.getElementById('amountChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: Object.keys(amountByMonth),
+      datasets: [{
+        label: 'ยอดใช้จ่ายรายเดือน (บาท)',
+        data: Object.values(amountByMonth),
+        borderColor: '#f472b6',
+        backgroundColor: '#f472b6',
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  new Chart(document.getElementById('vehicleStatusChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['ใช้งานได้', 'กำลังซ่อม', 'รออนุมัติ'],
+      datasets: [{
+        data: [usable, inProgress, pending],
+        backgroundColor: ['#4ade80', '#facc15', '#60a5fa']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        title: { display: true, text: 'สถานะรถปัจจุบัน (จากทั้งหมด 28 คัน)' }
+      }
+    }
+  });
+}
 window.onload = loadRepairs;
 </script>
 </body>
